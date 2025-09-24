@@ -3,10 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdminController;
 
-// 🔹 Ruta por defecto → dashboard del SuperAdmin
+//Ruta por defecto → dashboard del SuperAdmin
 Route::get('/', [SuperAdminController::class, 'dashboard'])->name('home');
 
-// 🔹 Grupo de rutas del SuperAdmin
+// Grupo de rutas del SuperAdmin
 Route::prefix('superadmin')->name('superadmin.')->group(function () {
 
     // Dashboard (también accesible en /superadmin/dashboard)
