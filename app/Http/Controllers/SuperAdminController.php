@@ -294,7 +294,7 @@ class SuperAdminController extends Controller
             'nombre' => "Reporte de {$tipo_reporte}",
             'tipo' => $tipo_reporte,
             'formato' => 'CSV',
-            'generado_por' => 1, // 👈 sin login, fija a 1 (superadmin)
+            'generado_por' => 1, 
             'created_at' => now()
         ]);
 
@@ -315,7 +315,7 @@ class SuperAdminController extends Controller
             'nombre' => "Reporte de {$tipo_reporte}",
             'tipo' => $tipo_reporte,
             'formato' => 'PDF',
-            'generado_por' => DB::table('usuarios')->where('rol_id', 1)->value('id'), // 👈 usa tu superadmin
+            'generado_por' => DB::table('usuarios')->where('rol_id', 1)->value('id'),
             'created_at' => now()
         ]);
 
