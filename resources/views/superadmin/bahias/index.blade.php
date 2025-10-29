@@ -59,6 +59,13 @@
                             data-activa="{{ $bahia->activa }}">
                             Editar
                         </button>
+
+                        <button class="btn btn-danger btn-sm editar-bahia"
+                            data-bs-toggle="modal"
+                            data-bs-target="#eliminarBahiaModal"
+                            data-id="{{ $bahia->id }}">
+                            Eliminar
+                        </button>
                     </td>
                 </tr>
                 @endforeach
@@ -129,6 +136,26 @@
     </div>
 </div>
 
+<!-- Modal Eliminar Bahía -->
+<div class="modal fade" id="eliminarBahiaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Eliminar bahia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="edit-id">
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <script>
 document.querySelectorAll('.editar-bahia').forEach(btn => {
     btn.addEventListener('click', function() {

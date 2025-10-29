@@ -13,18 +13,15 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('superadmin.dashboard') }}">Super Admin</a>
+            <a class="navbar-brand" href="{{ route('vigilante.dashboard') }}">Vigilante</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ route('superadmin.tarifas') }}">Tarifas</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('superadmin.bahias') }}">Bahías</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('superadmin.reportes') }}">Reportes</a></li>
-                    <li class="nav-item"><a class="nav-link"
-                            href="{{ route('superadmin.configuracion') }}">Configuración</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('vigilante.dashboard') }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('vigilante.vehicles') }}">Entradas/salidas</a></li>
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">

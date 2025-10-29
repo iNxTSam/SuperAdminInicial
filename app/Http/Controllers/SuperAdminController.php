@@ -155,6 +155,10 @@ class SuperAdminController extends Controller
         return redirect()->route('superadmin.bahias')->with('success', 'Bahía actualizada exitosamente');
     }
 
+    public function deleteBahia(Request $request){
+
+    }
+
     // REPORTES
     public function reportes()
     {

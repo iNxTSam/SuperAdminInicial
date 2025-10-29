@@ -1,15 +1,30 @@
 <?php
 
+use App\Http\Controllers\Login;
+use App\Http\Controllers\Logout;
+use App\Http\Controllers\Register;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\VigilanteController;
 
 //Ruta por defecto → dashboard del SuperAdmin
-Route::get('/', [SuperAdminController::class, 'dashboard'])->name('home');
+Route::get('/', function  (){return view('login');})->name('login');
+Route::get('/registro', [register::class,'view'])->name('register');
+
+Route::post('/logging',[Login::class,'loginUser'])->name('loginUsuario');
+
+Route::post('/usuarios',[Register::class,'crear'])->name('registrarUsuario');
+
+Route::get('/vigilante',[VigilanteController::class, 'dashboard'])->name('vigilante.dashboard');
+Route::get('/entradas-salidas',[VigilanteController::class, 'vehicles'])->name('vigilante.vehicles');
+
+Route::middleware(['auth','rol_id:2','no-cache'])->prefix('vigilante')->name('vigilante.')->group(function(){
+});
 
 // Grupo de rutas del SuperAdmin
-Route::prefix('superadmin')->name('superadmin.')->group(function () {
+Route::middleware(['auth','rol_id:1','no-cache'])->prefix('superadmin')->name('superadmin.')->group(function () {
 
-    // Dashboard (también accesible en /superadmin/dashboard)
+    // Dashboard 
     Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
 
     // Tarifas
@@ -30,3 +45,5 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/configuracion', [SuperAdminController::class, 'configuracion'])->name('configuracion');
     Route::post('/configuracion/tipo-vehiculo', [SuperAdminController::class, 'storeTipoVehiculo'])->name('configuracion.tipoVehiculo');
 });
+
+Route::post ('/logout',[Logout::class,'logout'])->name('logout');
