@@ -7,12 +7,16 @@ class VigilanteController extends Controller
 {
     public function dashboard()
     {
-        $bahias = DB::table('bahias')
-            ->join('tipos_vehiculo', 'bahias.tipo_vehiculo_id', '=', 'tipos_vehiculo.id')
-            ->select('bahias.*', 'tipos_vehiculo.nombre as tipo_vehiculo_nombre')
-            ->orderBy('bahias.numero')
+        $bahiasAuto = DB::table('bahias')->where('tipo_vehiculo_id', 1)
             ->get();
-        return view('vigilante.dashboard', compact('bahias'));
+        $bahiasMoto = DB::table('bahias')->where('tipo_vehiculo_id', 2)
+            ->get();
+        $bahiasBicicleta = DB::table('bahias')->where('tipo_vehiculo_id', 3)
+            ->get();
+        $bahiasElectricas = DB::table('bahias')->where('tipo_vehiculo_id', 4)
+            ->get();
+
+        return view('vigilante.dashboard', compact('bahiasAuto', 'bahiasMoto', 'bahiasBicicleta', 'bahiasElectricas'));
     }
     public function vehicles()
     {

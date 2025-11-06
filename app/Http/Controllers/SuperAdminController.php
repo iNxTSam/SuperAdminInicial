@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use function Laravel\Prompts\alert;
+use function Laravel\Prompts\table;
 
 class SuperAdminController extends Controller
 {
@@ -155,8 +157,11 @@ class SuperAdminController extends Controller
         return redirect()->route('superadmin.bahias')->with('success', 'Bahía actualizada exitosamente');
     }
 
-    public function deleteBahia(Request $request){
-
+    public function deleteBahia(Request $request, $id)
+    {
+        DB::table('bahias')->where('id', $id)->delete();
+        
+        return redirect()->route('superadmin.bahias')->with('success', 'Bahía eliminada correctamente');
     }
 
     // REPORTES
@@ -191,7 +196,7 @@ class SuperAdminController extends Controller
                     ->join('tipos_vehiculo', 'bahias.tipo_vehiculo_id', '=', 'tipos_vehiculo.id')
                     ->leftJoin('tickets', function ($join) {
                         $join->on('bahias.id', '=', 'tickets.bahia_id')
-                             ->where('tickets.estado', '=', 'activo');
+                            ->where('tickets.estado', '=', 'activo');
                     })
                     ->leftJoin('vehiculos', 'tickets.vehiculo_id', '=', 'vehiculos.id')
                     ->select(
@@ -298,7 +303,7 @@ class SuperAdminController extends Controller
             'nombre' => "Reporte de {$tipo_reporte}",
             'tipo' => $tipo_reporte,
             'formato' => 'CSV',
-            'generado_por' => 1, 
+            'generado_por' => 1,
             'created_at' => now()
         ]);
 

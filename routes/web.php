@@ -36,6 +36,7 @@ Route::middleware(['auth','rol_id:1','no-cache'])->prefix('superadmin')->name('s
     Route::get('/bahias', [SuperAdminController::class, 'bahias'])->name('bahias');
     Route::post('/bahias', [SuperAdminController::class, 'storeBahia'])->name('bahias.store');
     Route::put('/bahias/{id}', [SuperAdminController::class, 'updateBahia'])->name('bahias.update');
+    Route::delete('/bahias/eliminar/{id}', [SuperAdminController::class, 'deleteBahia'])->name('bahias.delete');
 
     // Reportes
     Route::get('/reportes', [SuperAdminController::class, 'reportes'])->name('reportes');
