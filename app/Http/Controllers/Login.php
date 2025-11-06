@@ -25,7 +25,7 @@ class Login extends Controller
                 return redirect()->route('superadmin.dashboard');
             }
             if ($user->rol_id === 2) {
-                return redirect()->route('admin.dahsboard');
+                return redirect()->route('admin.dashboard');
             }
             if ($user->rol_id === 3) {
                 return redirect()->route('vigilante.dashboard');
