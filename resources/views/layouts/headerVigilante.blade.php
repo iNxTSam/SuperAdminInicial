@@ -20,8 +20,8 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ route('vigilante.dashboard') }}">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('vigilante.vehicles') }}">Entradas/salidas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('vigilante.gestionvehiculos') }}">Vehiculos</a></li>
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">

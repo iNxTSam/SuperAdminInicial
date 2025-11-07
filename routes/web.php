@@ -6,7 +6,7 @@ use App\Http\Controllers\Register;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\VigilanteController;
-use App\Http\Controllers\AdminController; 
+use App\Http\Controllers\AdminController;
 
 
 Route::get('/', function () {
@@ -20,13 +20,17 @@ Route::post('/usuarios', [Register::class, 'crear'])->name('registrarUsuario');
 Route::post('/logout', [Logout::class, 'logout'])->name('logout');
 
 
-//  RUTAS DEL VIGILANTE
 
-Route::get('/vigilante', [VigilanteController::class, 'dashboard'])->name('vigilante.dashboard');
-Route::get('/entradas-salidas', [VigilanteController::class, 'vehicles'])->name('vigilante.vehicles');
 
 Route::middleware(['auth', 'rol_id:3', 'no-cache'])->prefix('vigilante')->name('vigilante.')->group(function () {
+    //  RUTAS DEL VIGILANTE
 
+    Route::get('/', [VigilanteController::class, 'dashboard'])->name('dashboard');
+    Route::get('/entradas-salidas', [VigilanteController::class, 'vehicles'])->name('vehicles');
+
+    Route::get('/vehiculos', [VigilanteController::class, 'gestion'])->name('gestionvehiculos');
+    Route::post('/vehiculos',[VigilanteController::class, 'nuevoVehiculo'])->name('nuevo.vehiculo');
+    Route::put('/vehiculos/{id}',[VigilanteController::class, 'updateVehiculo'])->name('update.vehiculo');
 });
 
 

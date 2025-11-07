@@ -24,6 +24,8 @@
             </tr>
         </thead>
         <tbody>
+            @forelse()
+            @endforelse
             <tr>
                 <td>12345</td>
                 <td>111111111111</td>

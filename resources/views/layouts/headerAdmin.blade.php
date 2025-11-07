@@ -21,12 +21,6 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" 
-                           href="{{ route('admin.dashboard') }}">
-                           <i class="bi bi-speedometer2 me-1"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('admin.usuarios') ? 'active' : '' }}" 
                            href="{{ route('admin.usuarios') }}">
                            <i class="bi bi-people me-1"></i> Usuarios
