@@ -24,7 +24,7 @@ class VigilanteController extends Controller
         $vehiculo = DB::table('vehiculos')
         ->where('estado_parqueo', 1)
         ->get();
-        return view('vigilante.entradas_salidas.vehicles');
+        return view('vigilante.entradas_salidas.vehicles',compact('vehiculo'));
     }
 
     public function gestion()

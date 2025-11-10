@@ -7,7 +7,8 @@
         <h4>Vehículos ingresados</h4>
         <div>
             <input class="form-control d-inline-block" style="width:260px" placeholder="Ingrese placa o documento">
-            <button class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#modalNuevo">+ Ingresar nuevo vehículo</button>
+            <button class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#modalNuevo">+ Ingresar nuevo
+                vehículo</button>
         </div>
     </div>
 
@@ -24,7 +25,12 @@
             </tr>
         </thead>
         <tbody>
-            @forelse()
+            @forelse($vehiculo as $vehiculos)
+
+            @empty
+                <tr>
+                    <td colspan="8" class="text-center text-muted">No se encontraron vehiculos</td>
+                </tr>
             @endforelse
             <tr>
                 <td>12345</td>
@@ -33,7 +39,8 @@
                 <td>10/20/2025 12:30 PM</td>
                 <td>987654321</td>
                 <td>10/21/2025 4:30 PM</td>
-                <td><button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalSalida">Marcar salida</button></td>
+                <td><button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalSalida">Marcar
+                        salida</button></td>
             </tr>
             <tr>
                 <td>54321</td>
@@ -42,7 +49,8 @@
                 <td>10/20/2025 12:30 PM</td>
                 <td>987654321</td>
                 <td>-</td>
-                <td><button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalSalida">Marcar salida</button></td>
+                <td><button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalSalida">Marcar
+                        salida</button></td>
             </tr>
         </tbody>
     </table>
