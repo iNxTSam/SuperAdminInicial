@@ -27,6 +27,7 @@ Route::middleware(['auth', 'rol_id:3', 'no-cache'])->prefix('vigilante')->name('
 
     Route::get('/', [VigilanteController::class, 'dashboard'])->name('dashboard');
     Route::get('/entradas-salidas', [VigilanteController::class, 'vehicles'])->name('vehicles');
+    Route::post('/verificar-usuario', [VigilanteController::class, 'verificarUsuario'])->name('verificarUsuario');
 
     Route::get('/vehiculos', [VigilanteController::class, 'gestion'])->name('gestionvehiculos');
     Route::post('/vehiculos',[VigilanteController::class, 'nuevoVehiculo'])->name('nuevo.vehiculo');

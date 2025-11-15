@@ -27,6 +27,18 @@ class VigilanteController extends Controller
         return view('vigilante.entradas_salidas.vehicles',compact('vehiculo'));
     }
 
+    public function verificarUsuario(Request $request){
+        $id= $request->input('propietario');
+        $usuario = DB::table('clientes')->where('id', $id)->first();
+        $vehiculo = DB::table('vehiculos')->where('propietario_id',$usuario->id)->get();
+            $tipo_ids = $vehiculo->pluck('tipo_vehiculo_id')->filter()->values()->all();
+            $tipo_vehiculo = count($tipo_ids) ? DB::table('tipos_vehiculo')->whereIn('id', $tipo_ids)->get() : collect();
+        return response()->json([  
+            'existe'=> $usuario ? true : false,
+            'tipo_vehiculo' => $tipo_vehiculo
+        ]);
+    }
+
     public function gestion()
     {
         $vehiculos = DB::table('vehiculos')
