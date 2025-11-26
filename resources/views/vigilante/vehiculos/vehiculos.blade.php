@@ -40,7 +40,7 @@
                 <td>{{$vehiculo->marca }}</td>
                 <td>{{$vehiculo->modelo }}</td>
                 <td><button class="btn btn-warning editar-vehiculo" data-bs-toggle="modal"
-                    data-bs-target="#editarVehiculoModal" data-id="{{ $vehiculo->id}}" data-placa="{{ $vehiculo->placa }}"
+                    data-bs-target="#editarVehiculoModal" data-placa="{{ $vehiculo->placa }}"
                     data-tipo-vehiculo="{{ $vehiculo->tipo_vehiculo_id}}" data-propietario="{{ $vehiculo->propietario_id }}"
                     data-color="{{ $vehiculo->color }}" data-marca="{{ $vehiculo->marca }}"
                     data-modelo="{{ $vehiculo->modelo }}">Editar</button></td>
@@ -162,7 +162,7 @@
   <script>
     document.querySelectorAll('.editar-vehiculo').forEach(btn => {
       btn.addEventListener('click', function () {
-        let id = this.dataset.id;
+        let id = this.dataset.placa;
         document.getElementById('formEditVehiculo').action = `/vigilante/vehiculos/${id}`;
         document.getElementById('edit-placa').value = this.dataset.placa;
         document.getElementById('edit-propietario').value = this.dataset.propietario;
