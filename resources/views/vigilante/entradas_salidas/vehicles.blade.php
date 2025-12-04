@@ -35,9 +35,15 @@
                     <td>{{ $registros->telefono }}</td>
                     <td>{{ $registros->fecha_entrada }}</td>
                     <td>{{ $registros->fecha_salida }}</td>
-                    <td><button class="btn btn-warning btn-sm marcar-salida" data-bs-toggle="modal" data-bs-target="#modalSalida"
-                            data-id="{{ $registros->id }}">Marcar
-                            salida</button></td>
+                    <td>
+                        @if($registros->marcar_salida == 1)
+                            Salida marcada
+                        @else
+                            <button class="btn btn-warning btn-sm marcar-salida" data-bs-toggle="modal" data-bs-target="#modalSalida" 
+                            data-id="{{ $registros->id}}"
+                            data-placa="{{ $registros->vehiculo}}">Marcar salida</button>
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr>
@@ -142,11 +148,11 @@
                         msg.style.display = 'block';
 
                         select.innerHTML = '<option value="0" >Seleccione el tipo de vehiculo</option>'
-                        if (data.tipo_vehiculo) {
-                            data.tipo_vehiculo.forEach((tipo, index) => {
+                        if (data.vehiculos) {
+                            data.vehiculos.forEach((tipo, index) => {
                                 const option = document.createElement('option');
                                 option.value = data.placas[index];
-                                option.textContent = tipo.nombre + " | " + (data.placas[index] || 'Sin placa');
+                                option.textContent =data.vehiculos[index].nombre + " | " + (data.placas[index] || 'Sin placa');
                                 select.appendChild(option);
 
                             });
@@ -176,15 +182,16 @@
             }
         }
 
-        
 
-            document.querySelectorAll('.marcar-salida').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    let id = this.dataset.id;
-                    document.getElementById('marcarSalidaForm').action = `/vigilante/entradas-salidas/registrarSalida/${id}`;
-                })
-            });
-            
+
+        document.querySelectorAll('.marcar-salida').forEach(btn => {
+            btn.addEventListener('click', function () {
+                let id = this.dataset.id;
+                let placa = this.dataset.placa;
+                document.getElementById('marcarSalidaForm').action = `/vigilante/entradas-salidas/registrarSalida/${id}/${placa}`;
+            })
+        });
+
 
     </script>
 @endsection

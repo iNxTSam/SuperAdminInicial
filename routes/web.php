@@ -20,20 +20,18 @@ Route::post('/usuarios', [Register::class, 'crear'])->name('registrarUsuario');
 Route::post('/logout', [Logout::class, 'logout'])->name('logout');
 
 
-
+//  RUTAS DEL VIGILANTE
 
 Route::middleware(['auth', 'rol_id:3', 'no-cache'])->prefix('vigilante')->name('vigilante.')->group(function () {
-    //  RUTAS DEL VIGILANTE
+
 
     Route::get('/', [VigilanteController::class, 'dashboard'])->name('dashboard');
     Route::get('/entradas-salidas', [VigilanteController::class, 'entradas_salidas'])->name('vehicles');
     Route::post('/entradas-salidas/registrarIngreso', [VigilanteController::class, 'registrarIngreso'])->name('registrarIngreso');
-    Route::put('/entradas-salidas/registrarSalida/{id}', [VigilanteController::class, 'registrarSalida'])->name('registrarSalida');
+    Route::put('/entradas-salidas/registrarSalida/{id}/{placa}', [VigilanteController::class, 'registrarSalida'])->name('registrarSalida');
     Route::post('/entradas-salidas/verificar-usuario', [VigilanteController::class, 'verificarUsuario'])->name('verificarUsuario');
 
     Route::get('/vehiculos', [VigilanteController::class, 'gestion'])->name('gestionvehiculos');
-    Route::post('/vehiculos',[VigilanteController::class, 'nuevoVehiculo'])->name('nuevo.vehiculo');
-    Route::put('/vehiculos/{id}',[VigilanteController::class, 'updateVehiculo'])->name('update.vehiculo');
 });
 
 
@@ -84,6 +82,14 @@ Route::middleware(['auth', 'rol_id:2', 'no-cache'])->prefix('admin')->name('admi
     Route::put('/contratos/{id}', [AdminController::class, 'updateContrato'])->name('contratos.update');
     Route::post('/contratos/{id}/renovar', [AdminController::class, 'renovarContrato'])->name('contratos.renovar');
 
+    // Clientes
+    Route::get('/clientes', [AdminController::class, 'clientes'])->name('clientes');
+    Route::post('/clientes', [AdminController::class, 'storeCliente'])->name('clientes.store');
+    Route::put('/clientes/{id}', [AdminController::class, 'updateCliente'])->name('clientes.update');
 
+    // Vehiculos
+    Route::get('/vehiculos', [AdminController::class, 'gestion'])->name('gestionvehiculos');
+    Route::post('/vehiculos', [AdminController::class, 'nuevoVehiculo'])->name('nuevo.vehiculo');
+    Route::put('/vehiculos/{id}', [AdminController::class, 'updateVehiculo'])->name('update.vehiculo');
 });
 

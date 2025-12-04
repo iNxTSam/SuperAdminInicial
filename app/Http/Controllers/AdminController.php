@@ -11,230 +11,325 @@ use App\Models\Vehiculo;
 use App\Models\Rol;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
+    #VISTA DE DASHBOARD
+    public function dashboard()
+    {
 
-public function dashboard()
-{
-
-    $totalUsuarios = Usuario::count();
-    $totalContratos = Contrato::count();
-    $contratosActivos = Contrato::whereHas('estado', fn($q) => $q->where('nombre', 'activo'))->count();
-
-
-    $contratosVencidos = Contrato::with(['vehiculo.propietario', 'tarifa'])
-        ->whereHas('estado', fn($q) => $q->where('nombre', 'vencido'))
-        ->orderBy('fecha_fin', 'desc')
-        ->get();
+        $totalUsuarios = Usuario::count();
+        $totalContratos = Contrato::count();
+        $contratosActivos = Contrato::whereHas('estado', fn($q) => $q->where('nombre', 'activo'))->count();
 
 
-    $proximosVencimientos = Contrato::with(['vehiculo.propietario', 'tarifa'])
-        ->whereBetween('fecha_fin', [now(), now()->addDays(7)])
-        ->orderBy('fecha_fin')
-        ->get();
+        $contratosVencidos = Contrato::with(['vehiculo.propietario', 'tarifa'])
+            ->whereHas('estado', fn($q) => $q->where('nombre', 'vencido'))
+            ->orderBy('fecha_fin', 'desc')
+            ->get();
 
 
-    $bahias = \App\Models\Bahia::with('tipoVehiculo')
-        ->where('activa', true)
-        ->get()
-        ->groupBy('tipo_vehiculo_id')
-        ->map(function ($grupo) {
-            $tipoVehiculo = $grupo->first()->tipoVehiculo->nombre ?? 'Sin tipo';
-            $total = $grupo->sum('capacidad_maxima');
-            $ocupadas = $grupo->sum('ocupada');
-            return (object)[
-                'tipo_vehiculo' => $tipoVehiculo,
-                'total' => $total,
-                'ocupadas' => $ocupadas,
-            ];
-        })
-        ->values();
+        $proximosVencimientos = Contrato::with(['vehiculo.propietario', 'tarifa'])
+            ->whereBetween('fecha_fin', [now(), now()->addDays(7)])
+            ->orderBy('fecha_fin')
+            ->get();
 
 
-    $notificaciones = collect([
-
-    ]);
-
-    return view('admin.dashboard', compact(
-        'totalUsuarios',
-        'totalContratos',
-        'contratosActivos',
-        'contratosVencidos',
-        'proximosVencimientos',
-        'bahias',
-        'notificaciones'
-    ));
-}
-
-
-public function usuarios(Request $request)
-{
-
-    $buscar = $request->input('buscar');
+        $bahias = \App\Models\Bahia::with('tipoVehiculo')
+            ->where('activa', true)
+            ->get()
+            ->groupBy('tipo_vehiculo_id')
+            ->map(function ($grupo) {
+                $tipoVehiculo = $grupo->first()->tipoVehiculo->nombre ?? 'Sin tipo';
+                $total = $grupo->sum('capacidad_maxima');
+                $ocupadas = $grupo->sum('ocupada');
+                return (object) [
+                    'tipo_vehiculo' => $tipoVehiculo,
+                    'total' => $total,
+                    'ocupadas' => $ocupadas,
+                ];
+            })
+            ->values();
 
 
-    $query = Usuario::with('rol')->orderBy('created_at', 'desc');
+        $notificaciones = collect([
 
-    if (!empty($buscar)) {
-        $query->where(function($q) use ($buscar) {
-            $q->where('nombre', 'LIKE', "%{$buscar}%")
-              ->orWhere('cedula', 'LIKE', "%{$buscar}%")
-              ->orWhere('carnet', 'LIKE', "%{$buscar}%")
-              ->orWhere('email', 'LIKE', "%{$buscar}%");
-        });
+        ]);
+
+        return view('admin.dashboard', compact(
+            'totalUsuarios',
+            'totalContratos',
+            'contratosActivos',
+            'contratosVencidos',
+            'proximosVencimientos',
+            'bahias',
+            'notificaciones'
+        ));
     }
 
-    $usuarios = $query->get();
-    $roles = Rol::all();
+    #VISTA DE USUARIOS
+    public function usuarios(Request $request)
+    {
 
-    return view('admin.usuarios.index', compact('usuarios', 'roles', 'buscar'));
-}
-
-
-public function storeUsuario(Request $request)
-{
-    $request->validate([
-        'nombre' => 'required|string|max:100',
-        'cedula' => 'required|string|max:20|unique:usuarios,cedula',
-        'carnet' => 'nullable|string|max:50',
-        'contacto' => 'nullable|string|max:100',
-        'email' => 'nullable|email|max:100',
-        'rol_id' => 'required|exists:roles,id',
-        'password' => 'required|string|min:6',
-        'password_confirm' => 'required|string|min:6|same:password',
-        'activo' => 'nullable|boolean',
-    ]);
-
-    Usuario::create([
-        'nombre' => $request->nombre,
-        'cedula' => $request->cedula,
-        'carnet' => $request->carnet,
-        'contacto' => $request->contacto,
-        'email' => $request->email,
-        'rol_id' => $request->rol_id,
-        'password' => bcrypt($request->password),
-        'activo' => $request->activo ?? 1,
-    ]);
-
-    return redirect()->route('admin.usuarios')->with('success', 'Usuario registrado exitosamente.');
-}
-
-public function updateUsuario(Request $request, $id)
-{
-    $usuario = Usuario::findOrFail($id);
-
-    $request->validate([
-        'nombre' => 'required|string|max:100',
-        'cedula' => 'required|string|max:20|unique:usuarios,cedula,' . $usuario->id,
-        'carnet' => 'nullable|string|max:50',
-        'contacto' => 'nullable|string|max:100',
-        'email' => 'nullable|email|max:100',
-        'rol_id' => 'required|exists:roles,id',
-        'password' => 'nullable|string|min:6',
-        'password_confirm' => 'nullable|string|min:6|same:password',
-        'activo' => 'nullable|boolean',
-    ]);
-
-    $usuario->update([
-        'nombre' => $request->nombre,
-        'cedula' => $request->cedula,
-        'carnet' => $request->carnet,
-        'contacto' => $request->contacto,
-        'email' => $request->email,
-        'rol_id' => $request->rol_id,
-        'password' => $request->password ? bcrypt($request->password) : $usuario->password,
-        'activo' => $request->activo ?? $usuario->activo,
-    ]);
-
-    return redirect()->route('admin.usuarios')->with('success', 'Usuario actualizado correctamente.');
-}
-
-public function toggleUsuario($id)
-{
-    $usuario = Usuario::findOrFail($id);
-    $usuario->activo = !$usuario->activo;
-    $usuario->save();
-
-    return redirect()->route('admin.usuarios')->with('success', 'Estado de usuario actualizado correctamente.');
-}
+        $buscar = $request->input('buscar');
 
 
+        $query = Usuario::with('rol')->orderBy('created_at', 'desc');
 
+        if (!empty($buscar)) {
+            $query->where(function ($q) use ($buscar) {
+                $q->where('nombre', 'LIKE', "%{$buscar}%")
+                    ->orWhere('cedula', 'LIKE', "%{$buscar}%")
+                    ->orWhere('carnet', 'LIKE', "%{$buscar}%")
+                    ->orWhere('email', 'LIKE', "%{$buscar}%");
+            });
+        }
 
-// ===========================
-// 🔹 GESTIÓN DE CONTRATOS
-// ===========================
-public function contratos()
-{
-    // Cargar contratos con sus relaciones
-    $contratos = Contrato::with(['vehiculo.propietario', 'tarifa', 'estado'])
-        ->orderBy('fecha_fin', 'desc')
-        ->get()
-        ->map(function ($c) {
-            return (object)[
-                'id' => $c->id,
-                'propietario' => $c->vehiculo->propietario->nombre ?? '—',
-                'cedula' => $c->vehiculo->propietario->cedula ?? '—',
-                'vehiculo' => $c->vehiculo->placa ?? '—',
-                'fecha_inicio' => $c->fecha_inicio,
-                'fecha_fin' => $c->fecha_fin,
-                'valor_total' => $c->valor_total,
-                'estado' => $c->estado->nombre ?? '—',
-                'observaciones' => $c->observaciones,
-            ];
-        });
+        $usuarios = $query->get();
+        $roles = Rol::all();
 
-    $vehiculos = Vehiculo::with('propietario')->get();
-    $tarifas = Tarifa::where('activa', true)->get();
-    $estados = EstadoContrato::all();
+        return view('admin.usuarios.index', compact('usuarios', 'roles', 'buscar'));
+    }
+    public function storeUsuario(Request $request)
+    {
+        $request->validate([
+            'nombre' => 'required|string|max:100',
+            'cedula' => 'required|string|max:20|unique:usuarios,cedula',
+            'carnet' => 'nullable|string|max:50',
+            'contacto' => 'nullable|string|max:100',
+            'email' => 'nullable|email|max:100',
+            'rol_id' => 'required|exists:roles,id',
+            'password' => 'required|string|min:6',
+            'password_confirm' => 'required|string|min:6|same:password',
+            'activo' => 'nullable|boolean',
+        ]);
 
-    return view('admin.contratos.index', compact('contratos', 'vehiculos', 'tarifas', 'estados'));
-}
+        Usuario::create([
+            'nombre' => $request->nombre,
+            'cedula' => $request->cedula,
+            'carnet' => $request->carnet,
+            'contacto' => $request->contacto,
+            'email' => $request->email,
+            'rol_id' => $request->rol_id,
+            'password' => bcrypt($request->password),
+            'activo' => $request->activo ?? 1,
+        ]);
 
-public function storeContrato(Request $request)
-{
-    $request->validate([
-        'vehiculo_id' => 'required|exists:vehiculos,id',
-        'tarifa_id' => 'required|exists:tarifas,id',
-        'fecha_inicio' => 'required|date',
-        'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
-        'valor_total' => 'required|numeric|min:0',
-        'observaciones' => 'nullable|string|max:255',
-    ]);
+        return redirect()->route('admin.usuarios')->with('success', 'Usuario registrado exitosamente.');
+    }
 
-    Contrato::create([
-        'vehiculo_id' => $request->vehiculo_id,
-        'tarifa_id' => $request->tarifa_id,
-        'fecha_inicio' => $request->fecha_inicio,
-        'fecha_fin' => $request->fecha_fin,
-        'estado_id' => EstadoContrato::where('nombre', 'activo')->value('id'),
-        'valor_total' => $request->valor_total,
-        'observaciones' => $request->observaciones,
-        'created_by' => Auth::id(),
-    ]);
+    public function updateUsuario(Request $request, $id)
+    {
+        $usuario = Usuario::findOrFail($id);
 
-    return redirect()->route('admin.contratos')->with('success', 'Contrato creado exitosamente.');
-}
+        $request->validate([
+            'nombre' => 'required|string|max:100',
+            'cedula' => 'required|string|max:20|unique:usuarios,cedula,' . $usuario->id,
+            'carnet' => 'nullable|string|max:50',
+            'contacto' => 'nullable|string|max:100',
+            'email' => 'nullable|email|max:100',
+            'rol_id' => 'required|exists:roles,id',
+            'password' => 'nullable|string|min:6',
+            'password_confirm' => 'nullable|string|min:6|same:password',
+            'activo' => 'nullable|boolean',
+        ]);
 
-public function updateContrato(Request $request, $id)
-{
-    $contrato = Contrato::findOrFail($id);
+        $usuario->update([
+            'nombre' => $request->nombre,
+            'cedula' => $request->cedula,
+            'carnet' => $request->carnet,
+            'contacto' => $request->contacto,
+            'email' => $request->email,
+            'rol_id' => $request->rol_id,
+            'password' => $request->password ? bcrypt($request->password) : $usuario->password,
+            'activo' => $request->activo ?? $usuario->activo,
+        ]);
 
-    $request->validate([
-        'valor_total' => 'required|numeric|min:0',
-        'observaciones' => 'nullable|string|max:255',
-    ]);
+        return redirect()->route('admin.usuarios')->with('success', 'Usuario actualizado correctamente.');
+    }
 
-    $contrato->update([
-        'valor_total' => $request->valor_total,
-        'observaciones' => $request->observaciones,
-    ]);
+    public function toggleUsuario($id)
+    {
+        $usuario = Usuario::findOrFail($id);
+        $usuario->activo = !$usuario->activo;
+        $usuario->save();
 
-    return redirect()->route('admin.contratos')->with('success', 'Contrato actualizado correctamente.');
-}
+        return redirect()->route('admin.usuarios')->with('success', 'Estado de usuario actualizado correctamente.');
+    }
 
+    //VISTA DE CONTRATOS
+    public function contratos()
+    {
+        // Cargar contratos con sus relaciones
+        $contratos = Contrato::with(['vehiculo.propietario', 'tarifa', 'estado'])
+            ->orderBy('fecha_fin', 'desc')
+            ->get()
+            ->map(function ($c) {
+                return (object) [
+                    'id' => $c->id,
+                    'propietario' => $c->vehiculo->propietario->nombre ?? '—',
+                    'cedula' => $c->vehiculo->propietario->cedula ?? '—',
+                    'vehiculo' => $c->vehiculo->placa ?? '—',
+                    'fecha_inicio' => $c->fecha_inicio,
+                    'fecha_fin' => $c->fecha_fin,
+                    'valor_total' => $c->valor_total,
+                    'estado' => $c->estado->nombre ?? '—',
+                    'observaciones' => $c->observaciones,
+                ];
+            });
 
+        $vehiculos = Vehiculo::with('propietario')->get();
+        $tarifas = Tarifa::where('activa', true)->get();
+        $estados = EstadoContrato::all();
 
+        return view('admin.contratos.index', compact('contratos', 'vehiculos', 'tarifas', 'estados'));
+    }
 
+    public function storeContrato(Request $request)
+    {
+        $request->validate([
+            'vehiculo_id' => 'required|exists:vehiculos,id',
+            'tarifa_id' => 'required|exists:tarifas,id',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'valor_total' => 'required|numeric|min:0',
+            'observaciones' => 'nullable|string|max:255',
+        ]);
+
+        Contrato::create([
+            'vehiculo_id' => $request->vehiculo_id,
+            'tarifa_id' => $request->tarifa_id,
+            'fecha_inicio' => $request->fecha_inicio,
+            'fecha_fin' => $request->fecha_fin,
+            'estado_id' => EstadoContrato::where('nombre', 'activo')->value('id'),
+            'valor_total' => $request->valor_total,
+            'observaciones' => $request->observaciones,
+            'created_by' => Auth::id(),
+        ]);
+
+        return redirect()->route('admin.contratos')->with('success', 'Contrato creado exitosamente.');
+    }
+
+    public function updateContrato(Request $request, $id)
+    {
+        $contrato = Contrato::findOrFail($id);
+
+        $request->validate([
+            'valor_total' => 'required|numeric|min:0',
+            'observaciones' => 'nullable|string|max:255',
+        ]);
+
+        $contrato->update([
+            'valor_total' => $request->valor_total,
+            'observaciones' => $request->observaciones,
+        ]);
+
+        return redirect()->route('admin.contratos')->with('success', 'Contrato actualizado correctamente.');
+    }
+
+    #VISTA DE CLIENTES
+    public function clientes()
+    {
+        $clientes = DB::table('clientes')
+            ->join('rolclientes', 'clientes.rol', '=', 'rolclientes.idRol')
+            ->select('clientes.*', 'rolclientes.nombre as rol_nombre')
+            ->get();
+        $roles= DB::table('rolclientes')->get();
+        return view('admin.clientes.clientes', compact('clientes','roles'));
+    }
+
+    public function storeCliente(Request $request)
+    {
+        DB::table('clientes')->insert([
+            'id' => $request->cedula,
+            'nombre' => $request->nombre,
+            'telefono' => $request->telefono,
+            'correo' => $request->correo,
+            'activo' => 1,
+            'rol' => $request->rol
+        ]);
+
+        return redirect()->route('admin.clientes')->with('success', 'Cliente creado exitosamente.');
+    }
+
+    public function updateCliente(Request $request, $id)
+    {
+        $cliente = DB::table('clientes')
+        ->where('id',$id)
+        ->update([
+            'id' => $request->cedula,
+            'nombre' => $request->nombre,
+            'correo' => $request->correo,
+            'activo' => $request->estado,
+            'telefono' => $request->telefono,
+        ]);
+
+        return redirect()->route('admin.clientes')->with('success', 'Cliente actualizado correctamente.');
+    }
+
+    #VISTA GESTION DE VEHICULOS
+        public function gestion()
+    {
+        $vehiculos = DB::table('vehiculos')
+            ->join('tipos_vehiculo', 'vehiculos.tipo_vehiculo_id', '=', 'tipos_vehiculo.id')
+            ->select('vehiculos.*', 'tipos_vehiculo.nombre as tipo_vehiculo_nombre')
+            ->orderBy('vehiculos.created_at')
+            ->get();
+        $tipos_vehiculo = DB::table('tipos_vehiculo')->get();
+
+        return view('admin.vehiculos.vehiculos', compact('vehiculos', 'tipos_vehiculo'));
+    }
+
+    public function nuevoVehiculo(Request $request)
+    {
+
+        $cliente = DB::table('clientes')->where('id', $request->cedula)->first();
+        $vehiculo = DB::table('vehiculos')->where('placa', $request->placa)->first();
+        if (!$cliente) {
+            return redirect()->route('admin.gestionvehiculos')->with("error", "El cliente no existe");
+        }
+        if ($vehiculo) {
+            return redirect()->route('admin.gestionvehiculos')->with("error", "El vehiculo ya existe");
+        }
+
+        DB::table('vehiculos')->insert([
+            'placa' => $request->placa,
+            'tipo_vehiculo_id' => $request->tipo_vehiculo_id,
+            'propietario_id' => $request->cedula,
+            'autorizado_por_id' => $request->user_id,
+            'color' => $request->color,
+            'marca' => $request->marca,
+            'modelo' => $request->modelo,
+        ]);
+
+        return redirect()->route('admin.gestionvehiculos')->with("succes", "Vehiculo registrado correctamente");
+    }
+
+    public function updateVehiculo(Request $request, $id)
+    {
+        $cliente = DB::table('clientes')->where('id', $request->propietario)->first();
+
+        $vehiculo = DB::table('vehiculos')->where('placa', $request->placa)->first();
+        if (!$cliente) {
+            return redirect()->route('admin.gestionvehiculos')->with("error", "El cliente no existe");
+        }
+        if ($vehiculo) {
+            return redirect()->route('admin.gestionvehiculos')->with("error", "No se puede editar porque la placa ya existe");
+        }
+
+        DB::table('vehiculos')
+            ->where('placa', $id)
+            ->update([
+                'placa' => $request->placa,
+                'tipo_vehiculo_id' => $request->tipoVehiculo,
+                'propietario_id' => $request->propietario,
+                'color' => $request->color,
+                'marca' => $request->marca,
+                'modelo' => $request->modelo,
+                'updated_at' => now()->setTimezone('America/Bogota')
+            ]);
+
+        return redirect()->route('admin.gestionvehiculos')->with("succes", "Informacion actualizada correctamente correctamente");
+    }
 }
