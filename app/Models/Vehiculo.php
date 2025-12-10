@@ -12,6 +12,8 @@ class Vehiculo extends Model
         'color', 'marca', 'modelo', 'activo'
     ];
 
+    protected $primaryKey = 'placa';
+
     public function tipo()
     {
         return $this->belongsTo(TipoVehiculo::class, 'tipo_vehiculo_id');
@@ -19,7 +21,7 @@ class Vehiculo extends Model
 
     public function propietario()
     {
-        return $this->belongsTo(Usuario::class, 'propietario_id');
+        return $this->belongsTo(Cliente::class, 'propietario_id');
     }
 
     public function autorizadoPor()

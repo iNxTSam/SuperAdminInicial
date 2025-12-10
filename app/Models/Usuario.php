@@ -26,8 +26,5 @@ class Usuario extends Authenticatable
         return $this->hasMany(Vehiculo::class, 'propietario_id');
     }
 
-    public function contratosCreados()
-    {
-        return $this->hasMany(Contrato::class, 'created_by');
-    }
+    
 }

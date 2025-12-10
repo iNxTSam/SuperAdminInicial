@@ -32,6 +32,18 @@
                            <i class="bi bi-file-text me-1"></i> Contratos
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.clientes') ? 'active' : '' }}" 
+                           href="{{ route('admin.clientes') }}">
+                           <i class="bi bi-file-text me-1"></i> Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.gestionvehiculos') ? 'active' : '' }}" 
+                           href="{{ route('admin.gestionvehiculos') }}">
+                           <i class="bi bi-file-text me-1"></i> Vehiculos
+                        </a>
+                    </li>
                 </ul>
 
                 <ul class="navbar-nav ms-auto">

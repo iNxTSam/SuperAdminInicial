@@ -9,12 +9,12 @@ class Contrato extends Model
     protected $table = 'contratos';
     protected $fillable = [
         'vehiculo_id', 'tarifa_id', 'fecha_inicio', 'fecha_fin',
-        'estado_id', 'valor_total', 'observaciones', 'created_by'
+        'estado_id', 'valor_total', 'observaciones', 'created_by','propietario_id','valor'
     ];
 
     public function vehiculo()
     {
-        return $this->belongsTo(Vehiculo::class, 'vehiculo_id');
+        return $this->belongsTo(Vehiculo::class, 'placa');
     }
 
     public function tarifa()
