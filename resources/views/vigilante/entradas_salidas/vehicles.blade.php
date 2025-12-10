@@ -119,7 +119,7 @@
             const select = document.getElementById('vehiculo');
             if (!input.trim()) {
                 msg.className = 'text text-danger';
-                msg.textContent = 'Profavor ingrese un numero de documento';
+                msg.textContent = 'Por favor ingrese un numero de documento';
                 msg.style.display = 'block';
                 return;
             }
@@ -163,6 +163,7 @@
                         msg.className = 'text text-danger';
                         msg.textContent = 'Usuario no encontrado';
                         msg.style.display = 'block';
+                        select.innerHTML = '<option>No se econtraron vehículos</option>'
                     }
                 })
                 .catch(error => console.error('Error:', error))

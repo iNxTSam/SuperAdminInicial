@@ -71,7 +71,13 @@
                 </div>
                 <div class="modal-body">
                     <input type="text" name="nombre" class="form-control mb-2" placeholder="Nombre" required>
-                    <input type="text" name="tipo" class="form-control mb-2" placeholder="Tipo (hora, día...)" required>
+                    <select name="tipo" class="form-control mb-2" required>
+                        <option>Seleccione el tipo (dia,mes, etc)</option>
+                        <option value="Mes">Mensual</option>
+                        <option value="Quincenal">Quincenal</option>
+                        <option value="Semanal">Semanal</option>
+                        <option value="Dia">Día</option>
+                    </select>
                     <select name="tipo_vehiculo_id" class="form-control mb-2" required>
                         <option value="">Seleccione tipo de vehículo</option>
                         @foreach($tipos_vehiculo as $tipo)

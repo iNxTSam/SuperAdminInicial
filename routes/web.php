@@ -81,6 +81,8 @@ Route::middleware(['auth', 'rol_id:2', 'no-cache'])->prefix('admin')->name('admi
     Route::post('/contratos', [AdminController::class, 'storeContrato'])->name('contratos.store');
     Route::put('/contratos/{id}', [AdminController::class, 'updateContrato'])->name('contratos.update');
     Route::post('/contratos/{id}/renovar', [AdminController::class, 'renovarContrato'])->name('contratos.renovar');
+    Route::post('/contratos/verificar-usuario', [AdminController::class, 'verificarUsuario'])->name('verificarUsuario');
+
 
     // Clientes
     Route::get('/clientes', [AdminController::class, 'clientes'])->name('clientes');

@@ -162,22 +162,25 @@ class AdminController extends Controller
     public function contratos()
     {
         // Cargar contratos con sus relaciones
-        $contratos = Contrato::with(['vehiculo.propietario', 'tarifa', 'estado'])
-            ->orderBy('fecha_fin', 'desc')
-            ->get()
-            ->map(function ($c) {
-                return (object) [
-                    'id' => $c->id,
-                    'propietario' => $c->vehiculo->propietario->nombre ?? '—',
-                    'cedula' => $c->vehiculo->propietario->cedula ?? '—',
-                    'vehiculo' => $c->vehiculo->placa ?? '—',
-                    'fecha_inicio' => $c->fecha_inicio,
-                    'fecha_fin' => $c->fecha_fin,
-                    'valor_total' => $c->valor_total,
-                    'estado' => $c->estado->nombre ?? '—',
-                    'observaciones' => $c->observaciones,
-                ];
-            });
+        $contratos = DB::table('contratos')
+            ->join('vehiculos', 'contratos.vehiculo_id', '=', 'vehiculos.placa')
+            ->join('clientes', 'vehiculos.propietario_id', '=', 'clientes.id')
+            ->join('tarifas', 'contratos.tarifa_id', '=', 'tarifas.id')
+            ->join('estados_contrato', 'contratos.estado_id', '=', 'estados_contrato.id')
+            ->select(
+                'contratos.id',
+                'clientes.nombre as propietario',
+                'clientes.id as cedula',
+                'vehiculos.placa as vehiculo',
+                'contratos.fecha_inicio',
+                'contratos.fecha_fin',
+                'contratos.valor as valor_total',
+                'estados_contrato.nombre as estado',
+                'contratos.observaciones'
+            )
+            ->orderBy('contratos.fecha_fin', 'desc')
+            ->get();
+        
 
         $vehiculos = Vehiculo::with('propietario')->get();
         $tarifas = Tarifa::where('activa', true)->get();
@@ -188,44 +191,88 @@ class AdminController extends Controller
 
     public function storeContrato(Request $request)
     {
-        $request->validate([
-            'vehiculo_id' => 'required|exists:vehiculos,id',
-            'tarifa_id' => 'required|exists:tarifas,id',
-            'fecha_inicio' => 'required|date',
-            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
-            'valor_total' => 'required|numeric|min:0',
-            'observaciones' => 'nullable|string|max:255',
-        ]);
 
-        Contrato::create([
-            'vehiculo_id' => $request->vehiculo_id,
-            'tarifa_id' => $request->tarifa_id,
-            'fecha_inicio' => $request->fecha_inicio,
-            'fecha_fin' => $request->fecha_fin,
-            'estado_id' => EstadoContrato::where('nombre', 'activo')->value('id'),
-            'valor_total' => $request->valor_total,
-            'observaciones' => $request->observaciones,
-            'created_by' => Auth::id(),
-        ]);
+        $tarifa = DB::table('tarifas')->where('id', $request->tarifa_id)->first();
+        $fecha_inicio = now();
+        $fecha_fin = $fecha_inicio->clone();
+
+        $tipo_tarifa = $tarifa->tipo ?? 'mes';
+
+        switch ($tipo_tarifa) {
+            case 'dia':
+                $fecha_fin->addDay();
+                break;
+            case 'semana':
+                $fecha_fin->addDays(7);
+                break;
+            case 'quincena':
+                $fecha_fin->addDays(15);
+                break;
+            case 'mes':
+                $fecha_fin->addMonth();
+                break;
+            default:
+                $fecha_fin->addMonth();
+        }
+
+        $valor_total = $tarifa->valor;
+        try {
+            Contrato::create([
+                'propietario_id' => $request->propietario,
+
+                'vehiculo_id' => $request->vehiculo,
+                'tarifa_id' => $request->tarifa_id,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin,
+                'estado_id' => EstadoContrato::where('nombre', 'activo')->value('id'),
+                'observaciones' => $request->observaciones,
+                'created_by' => Auth::id(),
+                'valor' => $valor_total,
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.contratos')->with('error', 'Error al crear el contrato: ' . $e->getMessage());
+        }
+
 
         return redirect()->route('admin.contratos')->with('success', 'Contrato creado exitosamente.');
     }
-
     public function updateContrato(Request $request, $id)
     {
         $contrato = Contrato::findOrFail($id);
 
-        $request->validate([
-            'valor_total' => 'required|numeric|min:0',
-            'observaciones' => 'nullable|string|max:255',
-        ]);
+
 
         $contrato->update([
-            'valor_total' => $request->valor_total,
+            'valor' => $request->valor_total,
             'observaciones' => $request->observaciones,
         ]);
 
         return redirect()->route('admin.contratos')->with('success', 'Contrato actualizado correctamente.');
+    }
+    public function verificarUsuario(Request $request)
+    {
+        $id = $request->input('propietario');
+        $usuario = DB::table('clientes')->where('id', $id)->first();
+
+        if (!$usuario) {
+            return response()->json([
+                'existe' => false,
+                'tipo_vehiculo' => collect()
+            ]);
+        }
+
+        $vehiculo = DB::table('vehiculos')
+            ->join('tipos_vehiculo', 'vehiculos.tipo_vehiculo_id', '=', 'tipos_vehiculo.id')
+            ->where('vehiculos.propietario_id', $usuario->id)
+            ->select('vehiculos.*', 'tipos_vehiculo.nombre')
+            ->get();
+        $placas = DB::table('vehiculos')->where('propietario_id', $usuario->id)->pluck('placa')->filter()->values()->all();
+
+        return response()->json([
+            'existe' => true,
+            'placas' => $placas,
+            'vehiculos' => $vehiculo
+        ]);
     }
 
     #VISTA DE CLIENTES
@@ -235,8 +282,8 @@ class AdminController extends Controller
             ->join('rolclientes', 'clientes.rol', '=', 'rolclientes.idRol')
             ->select('clientes.*', 'rolclientes.nombre as rol_nombre')
             ->get();
-        $roles= DB::table('rolclientes')->get();
-        return view('admin.clientes.clientes', compact('clientes','roles'));
+        $roles = DB::table('rolclientes')->get();
+        return view('admin.clientes.clientes', compact('clientes', 'roles'));
     }
 
     public function storeCliente(Request $request)
@@ -256,20 +303,20 @@ class AdminController extends Controller
     public function updateCliente(Request $request, $id)
     {
         $cliente = DB::table('clientes')
-        ->where('id',$id)
-        ->update([
-            'id' => $request->cedula,
-            'nombre' => $request->nombre,
-            'correo' => $request->correo,
-            'activo' => $request->estado,
-            'telefono' => $request->telefono,
-        ]);
+            ->where('id', $id)
+            ->update([
+                'id' => $request->cedula,
+                'nombre' => $request->nombre,
+                'correo' => $request->correo,
+                'activo' => $request->estado,
+                'telefono' => $request->telefono,
+            ]);
 
         return redirect()->route('admin.clientes')->with('success', 'Cliente actualizado correctamente.');
     }
 
     #VISTA GESTION DE VEHICULOS
-        public function gestion()
+    public function gestion()
     {
         $vehiculos = DB::table('vehiculos')
             ->join('tipos_vehiculo', 'vehiculos.tipo_vehiculo_id', '=', 'tipos_vehiculo.id')
