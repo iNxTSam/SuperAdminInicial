@@ -20,7 +20,7 @@ class Register extends Controller
         $rol = $request->rol;
         $password = $request->clave;
         $passwordConfirm = $request->claveConfirm;
-        if (!$id || !$correo || !$nombre || !$numeroCarnet || !$telefono || !$rol || !$password || !$passwordConfirm) {
+        if (!$id  || !$nombre  || !$rol || !$password || !$passwordConfirm) {
             return redirect()->route('register')->withErrors(['error' => 'Porfavor llene todos los campos']);
         }
         $userExist = Usuario::where('cedula', $request->numeroDocumento)

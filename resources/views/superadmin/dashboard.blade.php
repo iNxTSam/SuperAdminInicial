@@ -15,18 +15,18 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-bg-success shadow">
+        <div class="card text-bg-warning shadow">
             <div class="card-body">
-                <h5>Total Vehículos</h5>
-                <p class="fs-3">{{ $stats['total_vehiculos'] }}</p>
+                <h5>Total Clientes</h5>
+                <p class="fs-3">{{ $stats['total_clientes'] }}</p>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-bg-warning shadow">
+        <div class="card text-bg-success shadow">
             <div class="card-body">
-                <h5>Bahías Ocupadas</h5>
-                <p class="fs-3">{{ $stats['bahias_ocupadas'] }}/{{ $stats['total_bahias'] }}</p>
+                <h5>Total Vehículos</h5>
+                <p class="fs-3">{{ $stats['total_vehiculos'] }}</p>
             </div>
         </div>
     </div>
@@ -54,8 +54,8 @@
             @foreach($ocupacion_por_tipo as $item)
             <tr>
                 <td>{{ $item->nombre }}</td>
-                <td>{{ $item->total }}</td>
-                <td>{{ $item->ocupadas }}</td>
+                <td>{{ $item->capacidad_maxima }}</td>
+                <td>{{ $item->vehiculos_en_parqueo }}</td>
             </tr>
             @endforeach
         </tbody>

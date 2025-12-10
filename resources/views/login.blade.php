@@ -14,7 +14,7 @@
             <label for="clave" class="form-label">contraseña</label>
             <input type="password" class="form-control" id="clave" name="clave" required>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary">Iniciar sesión</button>
     </form>
     @if($errors->any())
         <div class="errores" style="color:red;">

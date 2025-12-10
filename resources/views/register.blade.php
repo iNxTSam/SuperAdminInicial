@@ -16,20 +16,8 @@
                 required>
         </div>
         <div class="mb-3">
-            <label for="correo" class="form-label">Correo electronico</label>
-            <input type="email" class="form-control" id="correo" aria-describedby="emailHelp" name="correo" required>
-        </div>
-        <div class="mb-3">
             <label for="nombre" class="form-label">Nombre</label>
             <input type="text" class="form-control" id="nombre" aria-describedby="emailHelp" name="nombre" required>
-        </div>
-        <div class="mb-3">
-            <label for="carnet" class="form-label">Número del carnet</label>
-            <input type="text" class="form-control" id="carnet" aria-describedby="emailHelp" name="carnet" required>
-        </div>
-        <div class="mb-3">
-            <label for="telefono" class="form-label">Número de telefono</label>
-            <input type="text" class="form-control" id="telefono" aria-describedby="emailHelp" name="telefono" required>
         </div>
         <div class="mb-3">
             <label for="rol">Seleccione un rol</label>
