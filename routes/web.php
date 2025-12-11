@@ -28,8 +28,9 @@ Route::middleware(['auth', 'rol_id:3', 'no-cache'])->prefix('vigilante')->name('
     Route::get('/', [VigilanteController::class, 'dashboard'])->name('dashboard');
     Route::get('/entradas-salidas', [VigilanteController::class, 'entradas_salidas'])->name('vehicles');
     Route::post('/entradas-salidas/registrarIngreso', [VigilanteController::class, 'registrarIngreso'])->name('registrarIngreso');
-    Route::put('/entradas-salidas/registrarSalida/{id}/{placa}', [VigilanteController::class, 'registrarSalida'])->name('registrarSalida');
+    Route::put('/entradas-salidas/registrarSalida/{id}/{placa}/{propietario}', [VigilanteController::class, 'registrarSalida'])->name('registrarSalida');
     Route::post('/entradas-salidas/verificar-usuario', [VigilanteController::class, 'verificarUsuario'])->name('verificarUsuario');
+    Route::post('/entradas-salidas/verificar-contrato', [VigilanteController::class, 'verificarContrato'])->name('verificarContrato');
 
     Route::get('/vehiculos', [VigilanteController::class, 'gestion'])->name('gestionvehiculos');
 });
