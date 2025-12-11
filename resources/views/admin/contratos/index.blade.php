@@ -41,20 +41,13 @@
               <td>{{ \Carbon\Carbon::parse($contrato->fecha_fin)->format('d/m/Y') }}</td>
               <td>${{ number_format($contrato->valor_total, 0, ',', '.') }}</td>
               <td>
-                @if($contrato->estado == 'activo')
-                  <span class="badge bg-success">Activo</span>
-                @elseif($contrato->estado == 'vencido')
-                  <span class="badge bg-warning text-dark">Vencido</span>
-                @elseif($contrato->estado == 'cancelado')
-                  <span class="badge bg-danger">Cancelado</span>
-                @else
-                  <span class="badge bg-secondary">{{ ucfirst($contrato->estado) }}</span>
-                @endif
+                <span class="badge bg-secondary">{{ ucfirst($contrato->estado) }}</span>
               </td>
               <td>
                 <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditarContrato"
                   data-id="{{ $contrato->id }}" data-observaciones="{{ $contrato->observaciones }}"
-                  data-valor="{{ $contrato->valor_total }}">
+                  data-valor="{{ $contrato->valor_total}}" data-estado="{{ $contrato->estado_id }}"
+                   data-vehiculo="{{ $contrato->vehiculo }}">
                   Editar
                 </button>
               </td>
@@ -74,11 +67,12 @@
   <div class="modal fade" id="modalNuevoContrato" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <form action="{{ route('admin.contratos.store') }}" method="POST">
+        <form id="form" action="{{ route('admin.contratos.store') }}" method="POST">
           @csrf
           <div class="modal-header bg-dark text-white">
             <h5 class="modal-title">Nuevo Contrato</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+              onclick="limpiarFormulario()"></button>
           </div>
           <div class="modal-body">
             <div class="p-1">
@@ -129,9 +123,17 @@
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
+            <input type="hidden" name="vehiculo" id="editVehiculo">
             <div class="mb-3">
               <label class="form-label">Valor Total</label>
               <input type="number" name="valor_total" id="editValor" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <select type="number" name="estado" id="editEstado" class="form-select" required>
+                @foreach ($estados as $estado)
+                <option value="{{ $estado->id }}">{{ $estado->nombre }}</option>
+                @endforeach
+              </select>
             </div>
             <div class="mb-3">
               <label class="form-label">Observaciones</label>
@@ -182,7 +184,7 @@
             msg.textContent = 'Usuario verificado';
             msg.style.display = 'block';
 
-            select.innerHTML = '<option value="0" >Seleccione el tipo de vehiculo</option>'
+            select.innerHTML = '<option value="">Seleccione el tipo de vehiculo</option>'
             if (data.vehiculos) {
               data.vehiculos.forEach((tipo, index) => {
                 const option = document.createElement('option');
@@ -209,10 +211,13 @@
     document.querySelectorAll('[data-bs-target="#modalEditarContrato"]').forEach(btn => {
       btn.addEventListener('click', function () {
         document.getElementById('formEditarContrato').action = `/admin/contratos/${this.dataset.id}`;
+        document.getElementById('editVehiculo').value = this.dataset.vehiculo;
         document.getElementById('editValor').value = this.dataset.valor;
+        document.getElementById('editEstado').value = this.dataset.estado;
         document.getElementById('editObservaciones').value = this.dataset.observaciones;
       });
     });
 
   </script>
+  <script src="{{ asset('js/limpiarFormulario.js') }}"></script>
 @endsection

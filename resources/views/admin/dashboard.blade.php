@@ -21,13 +21,13 @@
         </tr>
       </thead>
       <tbody>
-        @forelse($contratosVencidos as $contrato)
+        @forelse($proximosVencimientos as $contrato)
           <tr>
-            <td>{{ $contrato->propietario }}</td>
-            <td>{{ $contrato->cedula }}</td>
+            <td>{{ $contrato->propietario_nombre }}</td>
+            <td>{{ $contrato->propietario_id }}</td>
             <td>{{ $contrato->id }}</td>
-            <td>{{ $contrato->vehiculo }}</td>
-            <td>${{ number_format($contrato->valor_total, 0, ',', '.') }}</td>
+            <td>{{ $contrato->vehiculo_id }}</td>
+            <td>${{ number_format($contrato->valor, 0, ',', '.') }}</td>
             <td>{{ \Carbon\Carbon::parse($contrato->fecha_inicio)->format('d/m/Y') }}</td>
             <td>{{ \Carbon\Carbon::parse($contrato->fecha_fin)->format('d/m/Y') }}</td>
           </tr>
