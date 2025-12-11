@@ -30,9 +30,19 @@ class AdminController extends Controller
             ->get();
 
 
-        $proximosVencimientos = Contrato::with(['vehiculo.propietario', 'tarifa'])
-            ->whereBetween('fecha_fin', [now(), now()->addDays(7)])
-            ->orderBy('fecha_fin')
+        $proximosVencimientos = DB::table('contratos')->where('estado_id', 1)
+            ->join('vehiculos', 'contratos.vehiculo_id', '=', 'vehiculos.placa')
+            ->join('clientes', 'vehiculos.propietario_id', '=', 'clientes.id')
+            ->join('tarifas', 'contratos.tarifa_id', '=', 'tarifas.id')
+            ->whereBetween('contratos.fecha_fin', [now(), now()->addDays(7)])
+            ->select(
+                'contratos.*',
+                'clientes.nombre as propietario_nombre',
+                'clientes.id as propietario_cedula',
+                'vehiculos.placa',
+                'tarifas.nombre as tarifa_nombre'
+            )
+            ->orderBy('contratos.fecha_fin')
             ->get();
 
 
@@ -93,18 +103,15 @@ class AdminController extends Controller
     }
     public function storeUsuario(Request $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:100',
-            'cedula' => 'required|string|max:20|unique:usuarios,cedula',
-            'carnet' => 'nullable|string|max:50',
-            'contacto' => 'nullable|string|max:100',
-            'email' => 'nullable|email|max:100',
-            'rol_id' => 'required|exists:roles,id',
-            'password' => 'required|string|min:6',
-            'password_confirm' => 'required|string|min:6|same:password',
-            'activo' => 'nullable|boolean',
-        ]);
 
+        if (!$request->nombre || !$request->cedula || !$request->password) {
+            return redirect()->route('admin.usuarios')->with('error', 'Por favor llene los campos obligaorios');
+        }
+        $usuarioExistente = Usuario::where('cedula', $request->cedula)->first();
+
+        if ($usuarioExistente) {
+            return redirect()->route('admin.usuarios')->with('error', 'El numero de documento ya existe');
+        }
         Usuario::create([
             'nombre' => $request->nombre,
             'cedula' => $request->cedula,
@@ -122,18 +129,14 @@ class AdminController extends Controller
     public function updateUsuario(Request $request, $id)
     {
         $usuario = Usuario::findOrFail($id);
+        $usuarios = DB::table('usuarios')->where('cedula', $request->cedula)->count();
+        if ($usuarios > 0) {
+            return redirect()->route('admin.usuarios')->with('error', 'El numero de documento ya esta registrado');
+        }
+        if (!$request->nombre || !$request->cedula || !$request->rol_id || !$request->password) {
+            return redirect()->route('admin.usuarios')->with('error', 'Por favor llene los campos obligatorios');
+        }
 
-        $request->validate([
-            'nombre' => 'required|string|max:100',
-            'cedula' => 'required|string|max:20|unique:usuarios,cedula,' . $usuario->id,
-            'carnet' => 'nullable|string|max:50',
-            'contacto' => 'nullable|string|max:100',
-            'email' => 'nullable|email|max:100',
-            'rol_id' => 'required|exists:roles,id',
-            'password' => 'nullable|string|min:6',
-            'password_confirm' => 'nullable|string|min:6|same:password',
-            'activo' => 'nullable|boolean',
-        ]);
 
         $usuario->update([
             'nombre' => $request->nombre,
@@ -161,6 +164,16 @@ class AdminController extends Controller
     //VISTA DE CONTRATOS
     public function contratos()
     {
+        //Actualizar estado de los contratos
+        $contratoss = DB::table('contratos')->get();
+        $fechaActual = now();
+
+        Contrato::where('fecha_fin', '<=', $fechaActual)
+            ->where('estado_id', '!=', 2)
+            ->update(['estado_id' => 3]);
+
+
+
         // Cargar contratos con sus relaciones
         $contratos = DB::table('contratos')
             ->join('vehiculos', 'contratos.vehiculo_id', '=', 'vehiculos.placa')
@@ -176,11 +189,12 @@ class AdminController extends Controller
                 'contratos.fecha_fin',
                 'contratos.valor as valor_total',
                 'estados_contrato.nombre as estado',
-                'contratos.observaciones'
+                'contratos.observaciones',
+                'estados_contrato.id as estado_id'
             )
-            ->orderBy('contratos.fecha_fin', 'desc')
+            ->orderBy('contratos.id', 'desc')
             ->get();
-        
+
 
         $vehiculos = Vehiculo::with('propietario')->get();
         $tarifas = Tarifa::where('activa', true)->get();
@@ -196,19 +210,24 @@ class AdminController extends Controller
         $fecha_inicio = now();
         $fecha_fin = $fecha_inicio->clone();
 
-        $tipo_tarifa = $tarifa->tipo ?? 'mes';
+        $tipo_tarifa = $tarifa->tipo ?? 'Mes';
 
+        $contratoActivo = DB::table('contratos')->where('vehiculo_id', $request->vehiculo)
+            ->where('estado_id', 1)->count();
+        if ($contratoActivo > 0) {
+            return redirect()->route('admin.contratos')->with('error', 'El vehiculo ya tiene un contrato activo');
+        }
         switch ($tipo_tarifa) {
-            case 'dia':
+            case 'Dia':
                 $fecha_fin->addDay();
                 break;
-            case 'semana':
+            case 'Semana':
                 $fecha_fin->addDays(7);
                 break;
-            case 'quincena':
+            case 'Quincena':
                 $fecha_fin->addDays(15);
                 break;
-            case 'mes':
+            case 'Mes':
                 $fecha_fin->addMonth();
                 break;
             default:
@@ -216,6 +235,7 @@ class AdminController extends Controller
         }
 
         $valor_total = $tarifa->valor;
+
         try {
             Contrato::create([
                 'propietario_id' => $request->propietario,
@@ -239,11 +259,21 @@ class AdminController extends Controller
     public function updateContrato(Request $request, $id)
     {
         $contrato = Contrato::findOrFail($id);
+        $contratoActivo = DB::table('contratos')->where('vehiculo_id', $request->vehiculo)
+            ->where('estado_id', 1)
+            ->count();
+        $fechaActual = now();
+        if ($contrato->fecha_fin <= $fechaActual) {
+            return redirect()->route('admin.contratos')->with('error', 'No se puede hacer esto');
+        }
 
-
+        if ($contratoActivo > 0 && $request->estado == 1) {
+            return redirect()->route('admin.contratos')->with('error', 'No se puede hacer esto');
+        }
 
         $contrato->update([
             'valor' => $request->valor_total,
+            'estado_id' => $request->estado,
             'observaciones' => $request->observaciones,
         ]);
 
@@ -288,6 +318,13 @@ class AdminController extends Controller
 
     public function storeCliente(Request $request)
     {
+        if (!$request->cedula || !$request->nombre || !$request->telefono || !$request->correo || !$request->rol) {
+            return redirect()->route('admin.clientes')->with('error', 'Por favor llene todos los campos');
+        }
+        $usuario = DB::table('clientes')->where('id', $request->cedula)->count();
+        if ($usuario > 0) {
+            return redirect()->route('admin.clientes')->with('error', 'El cliente ya esta registrado');
+        }
         DB::table('clientes')->insert([
             'id' => $request->cedula,
             'nombre' => $request->nombre,
@@ -302,7 +339,14 @@ class AdminController extends Controller
 
     public function updateCliente(Request $request, $id)
     {
-        $cliente = DB::table('clientes')
+        if (!$request->cedula || !$request->nombre || !$request->correo || !$request->estado || !$request->telefono) {
+            return redirect()->route('admin.clientes')->with('error', 'Por favor llene todos los campos');
+        }
+        $cliente = DB::table('clientes')->where('id', $request->cedula)->count();
+        if ($cliente > 0) {
+            return redirect()->route('admin.clientes')->with('error', 'El numero de documento ya se encuentra registrado');
+        }
+        DB::table('clientes')
             ->where('id', $id)
             ->update([
                 'id' => $request->cedula,
@@ -333,6 +377,9 @@ class AdminController extends Controller
 
         $cliente = DB::table('clientes')->where('id', $request->cedula)->first();
         $vehiculo = DB::table('vehiculos')->where('placa', $request->placa)->first();
+        if (!$request->placa || !$request->tipo_vehiculo_id || !$request->cedula || !$request->color || !$request->marca || !$request->modelo) {
+            return redirect()->route('admin.gestionvehiculos')->with("error", "Por favor llene todos los campos");
+        }
         if (!$cliente) {
             return redirect()->route('admin.gestionvehiculos')->with("error", "El cliente no existe");
         }
@@ -355,14 +402,17 @@ class AdminController extends Controller
 
     public function updateVehiculo(Request $request, $id)
     {
-        $cliente = DB::table('clientes')->where('id', $request->propietario)->first();
 
+        if (!$request->placa || !$request->tipoVehiculo || !$request->propietario || !$request->color || !$request->marca || !$request->modelo) {
+            return redirect()->route('admin.gestionvehiculos')->with("error", "Por favor llene todos los campos");
+        }
+        $cliente = DB::table('clientes')->where('id', $request->propietario)->first();
         $vehiculo = DB::table('vehiculos')->where('placa', $request->placa)->first();
         if (!$cliente) {
             return redirect()->route('admin.gestionvehiculos')->with("error", "El cliente no existe");
         }
         if ($vehiculo) {
-            return redirect()->route('admin.gestionvehiculos')->with("error", "No se puede editar porque la placa ya existe");
+            return redirect()->route('admin.gestionvehiculos')->with("error", "La placa ya esta registrada");
         }
 
         DB::table('vehiculos')

@@ -73,16 +73,16 @@
             <div class="mb-2">
               <label class="form-label">Documento propietario</label>
               <input type="text" class="form-control" name="propietario" id="edit-propietario"
-                placeholder="Ingrese documento">
+                placeholder="Ingrese documento" required>
             </div>
             <div class="mb-2">
               <label class="form-label">Placa</label>
-              <input type="text" class="form-control" id="edit-placa" name="placa" placeholder="Ingrese placa">
+              <input type="text" class="form-control" id="edit-placa" name="placa" placeholder="Ingrese placa" required>
             </div>
             <div class="mb-2">
               <label class="form-label">Tipo de vehículo</label>
-              <select class="form-select" id="edit-vehiculo" name="tipoVehiculo">
-                <option>Seleccione tipo de vehículo</option>
+              <select class="form-select" id="edit-vehiculo" name="tipoVehiculo" required>
+                <option value="">Seleccione tipo de vehículo</option>
                 @foreach ($tipos_vehiculo as $tipo)
                   <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
                 @endforeach
@@ -90,19 +90,19 @@
             </div>
             <div class="mb-2">
               <label class="form-label">Color</label>
-              <input type="text" class="form-control" id="edit-color" name="color" placeholder="Color del vehículo">
+              <input type="text" class="form-control" id="edit-color" name="color" placeholder="Color del vehículo" required>
             </div>
             <div class="mb-2">
               <label class="form-label">Marca</label>
-              <input type="text" class="form-control" id="edit-marca" name="marca" placeholder="Marca">
+              <input type="text" class="form-control" id="edit-marca" name="marca" placeholder="Marca" required>
             </div>
             <div class="mb-2">
               <label class="form-label">Modelo</label>
-              <input type="text" class="form-control" id="edit-modelo" name="modelo" placeholder="Modelo">
+              <input type="text" class="form-control" id="edit-modelo" name="modelo" placeholder="Modelo" required>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn" data-bs-dismiss="modal">Aceptar</button>
+            <button type="submit" class="btn btn-primary" >Aceptar</button>
           </div>
         </form>
       </div>
@@ -132,7 +132,7 @@
             <div class="mb-2">
               <label class="form-label">Tipo de vehículo</label>
               <select name="tipo_vehiculo_id" class="form-select">
-                <option>Seleccione tipo de vehículo</option>
+                <option value="">Seleccione tipo de vehículo</option>
                 @foreach ($tipos_vehiculo as $tipo)
                   <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
                 @endforeach

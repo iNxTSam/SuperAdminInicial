@@ -14,6 +14,7 @@ class SuperAdminController extends Controller
     {
         $stats = [
             'total_usuarios' => DB::table('usuarios')->count(),
+            'total_clientes' => DB::table('clientes')->count(),
             'total_vehiculos' => DB::table('vehiculos')->count(),
             'bahias_ocupadas' => DB::table('bahias')->where('ocupada', true)->count(),
             'total_bahias' => DB::table('bahias')->count(),
@@ -28,12 +29,15 @@ class SuperAdminController extends Controller
 
         $ocupacion_por_tipo = DB::table('bahias')
             ->join('tipos_vehiculo', 'bahias.tipo_vehiculo_id', '=', 'tipos_vehiculo.id')
+            ->leftJoin('vehiculos', 'tipos_vehiculo.id', '=', 'vehiculos.tipo_vehiculo_id')
             ->select(
                 'tipos_vehiculo.nombre',
-                DB::raw('COUNT(*) as total'),
+                'bahias.capacidad_maxima',
+                DB::raw('COUNT(vehiculos.placa) as total_vehiculos'),
+                DB::raw('SUM(CASE WHEN vehiculos.estado_parqueo = 1 THEN 1 ELSE 0 END) as vehiculos_en_parqueo'),
                 DB::raw('SUM(CASE WHEN ocupada = 1 THEN 1 ELSE 0 END) as ocupadas')
             )
-            ->groupBy('tipos_vehiculo.id', 'tipos_vehiculo.nombre')
+            ->groupBy('bahias.capacidad_maxima', 'tipos_vehiculo.id', 'tipos_vehiculo.nombre')
             ->get();
 
         return view('superadmin.dashboard', compact('stats', 'ocupacion_por_tipo'));
@@ -55,12 +59,10 @@ class SuperAdminController extends Controller
 
     public function storeTarifa(Request $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:50',
-            'tipo' => 'required|string|max:20',
-            'tipo_vehiculo_id' => 'required|exists:tipos_vehiculo,id',
-            'valor' => 'required|numeric|min:0'
-        ]);
+
+        if (!$request->nombre || !$request->tipo || !$request->tipo_vehiculo_id || !$request->valor) {
+            return redirect()->route('superadmin.tarifas')->with('error', 'Por favor llene todos los campos');
+        }
 
         DB::table('tarifas')->insert([
             'nombre' => $request->nombre,
@@ -96,6 +98,11 @@ class SuperAdminController extends Controller
 
         return redirect()->route('superadmin.tarifas')->with('success', 'Tarifa actualizada exitosamente');
     }
+    public function deleteTarifa(Request $request, $id)
+    {
+        DB::table('tarifas')->where('id', $id)->delete();
+        return redirect()->route('superadmin.tarifas')->with('success', 'Tarifa eliminada exitosamente');
+    }
 
 
     // GESTIÓN DE BAHÍAS
@@ -106,6 +113,7 @@ class SuperAdminController extends Controller
             ->select('bahias.*', 'tipos_vehiculo.nombre as tipo_vehiculo_nombre')
             ->orderBy('bahias.numero')
             ->get();
+        $vehiculos = DB::table('vehiculos')->get();
 
         $tipos_vehiculo = DB::table('tipos_vehiculo')->get();
 
@@ -114,13 +122,9 @@ class SuperAdminController extends Controller
 
     public function storeBahia(Request $request)
     {
-        $request->validate([
-            'numero' => 'required|string|max:10|unique:bahias,numero',
-            'tipo_vehiculo_id' => 'required|exists:tipos_vehiculo,id',
-            'capacidad_maxima' => 'required|integer|min:1',
-            'ubicacion' => 'nullable|string|max:100'
-        ]);
-
+        if (!$request->numero || !$request->tipo_vehiculo_id || !$request->capacidad_maxima) {
+            return redirect()->route('superadmin.bahias')->with('Error', 'Por favor llene todos los campos');
+        }
         DB::table('bahias')->insert([
             'numero' => $request->numero,
             'tipo_vehiculo_id' => $request->tipo_vehiculo_id,
@@ -160,7 +164,7 @@ class SuperAdminController extends Controller
     public function deleteBahia(Request $request, $id)
     {
         DB::table('bahias')->where('id', $id)->delete();
-        
+
         return redirect()->route('superadmin.bahias')->with('success', 'Bahía eliminada correctamente');
     }
 
@@ -363,5 +367,18 @@ class SuperAdminController extends Controller
         ]);
 
         return redirect()->route('superadmin.configuracion')->with('success', 'Tipo de vehículo creado exitosamente');
+    }
+
+    public function updateTipoVehiculo(Request $request, $id)
+    {
+        if (!$request->nombre) {
+            return redirect()->route('superadmin.configuracion')->with('error', 'Por favor llene todos los campos');
+        }
+        DB::table('tipos_vehiculo')->where('id', $id)->update([
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion
+        ]);
+
+        return redirect()->route('superadmin.configuracion')->with('success', 'Tipo de vehiculo eliminada correctamente');
     }
 }

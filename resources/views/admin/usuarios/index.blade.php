@@ -75,7 +75,7 @@
 <div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <form id="formUsuario" method="POST">
+      <form id="form" method="POST">
         @csrf
         <input type="hidden" name="id" id="usuarioId">
 
@@ -86,18 +86,13 @@
 
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Nombre</label>
+            <label class="form-label">Nombre *</label>
             <input type="text" name="nombre" id="usuarioNombre" class="form-control" required>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Número de Documento</label>
+            <label class="form-label">Número de Documento *</label>
             <input type="text" name="cedula" id="usuarioCedula" class="form-control" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Carnet</label>
-            <input type="text" name="carnet" id="usuarioCarnet" class="form-control">
           </div>
 
           <div class="mb-3">
@@ -111,8 +106,9 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Rol</label>
-            <select name="rol_id" id="usuarioRol" class="form-select">
+            <label class="form-label">Rol *</label>
+            <select name="rol_id" id="usuarioRol" class="form-select" required>
+              <option value="">Seleccion el rol</option>
               @foreach($roles as $rol)
                 <option value="{{ $rol->id }}">{{ $rol->nombre }}</option>
               @endforeach
@@ -120,7 +116,7 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Activo</label>
+            <label class="form-label">Activo *</label>
             <select name="activo" id="usuarioActivo" class="form-select">
               <option value="1">Sí</option>
               <option value="0">No</option>
@@ -128,14 +124,10 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Contraseña</label>
+            <label class="form-label">Contraseña *</label>
             <input type="password" name="password" id="usuarioPassword" class="form-control" required>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">Confirmar Contraseña</label>
-            <input type="password" name="password_confirm" id="usuarioPasswordConfirm" class="form-control" required>
-          </div>
         </div>
 
         <div class="modal-footer">
@@ -149,7 +141,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const modal = document.getElementById('modalUsuario');
-  const form = document.getElementById('formUsuario');
+  const form = document.getElementById('form');
   const titulo = document.getElementById('tituloModal');
 
   modal.addEventListener('show.bs.modal', function (event) {
@@ -167,8 +159,6 @@ document.addEventListener('DOMContentLoaded', function () {
         input.value = 'PUT';
         form.appendChild(input);
       }
-
-
       form.querySelector('#usuarioId').value = button.dataset.id;
       form.querySelector('#usuarioNombre').value = button.dataset.nombre || '';
       form.querySelector('#usuarioCedula').value = button.dataset.cedula || '';
@@ -178,7 +168,6 @@ document.addEventListener('DOMContentLoaded', function () {
       form.querySelector('#usuarioRol').value = button.dataset.rol || '';
       form.querySelector('#usuarioActivo').value = button.dataset.activo || '1';
       form.querySelector('#usuarioPassword').removeAttribute('required');
-      form.querySelector('#usuarioPasswordConfirm').removeAttribute('required');
     } else {
       titulo.textContent = 'Nuevo Usuario';
       form.action = "{{ route('admin.usuarios.store') }}";
@@ -186,10 +175,11 @@ document.addEventListener('DOMContentLoaded', function () {
       if (methodInput) methodInput.remove();
       form.reset();
       form.querySelector('#usuarioPassword').setAttribute('required', true);
-      form.querySelector('#usuarioPasswordConfirm').setAttribute('required', true);
+
     }
   });
 });
 </script>
+<script src="{{ asset('js/app.js') }}"></script>
 
 @endsection

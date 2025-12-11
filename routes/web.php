@@ -15,7 +15,7 @@ Route::get('/', function () {
 
 Route::get('/registro', [Register::class, 'view'])->name('register');
 Route::post('/logging', [Login::class, 'loginUser'])->name('loginUsuario');
-Route::post('/usuarios', [Register::class, 'crear'])->name('registrarUsuario');
+// Route::post('/usuarios', [Register::class, 'crear'])->name('registrarUsuario');
 
 Route::post('/logout', [Logout::class, 'logout'])->name('logout');
 
@@ -28,8 +28,9 @@ Route::middleware(['auth', 'rol_id:3', 'no-cache'])->prefix('vigilante')->name('
     Route::get('/', [VigilanteController::class, 'dashboard'])->name('dashboard');
     Route::get('/entradas-salidas', [VigilanteController::class, 'entradas_salidas'])->name('vehicles');
     Route::post('/entradas-salidas/registrarIngreso', [VigilanteController::class, 'registrarIngreso'])->name('registrarIngreso');
-    Route::put('/entradas-salidas/registrarSalida/{id}/{placa}', [VigilanteController::class, 'registrarSalida'])->name('registrarSalida');
+    Route::put('/entradas-salidas/registrarSalida/{id}/{placa}/{propietario}', [VigilanteController::class, 'registrarSalida'])->name('registrarSalida');
     Route::post('/entradas-salidas/verificar-usuario', [VigilanteController::class, 'verificarUsuario'])->name('verificarUsuario');
+    Route::post('/entradas-salidas/verificar-contrato', [VigilanteController::class, 'verificarContrato'])->name('verificarContrato');
 
     Route::get('/vehiculos', [VigilanteController::class, 'gestion'])->name('gestionvehiculos');
 });
@@ -46,6 +47,7 @@ Route::middleware(['auth', 'rol_id:1', 'no-cache'])->prefix('superadmin')->name(
     Route::get('/tarifas', [SuperAdminController::class, 'tarifas'])->name('tarifas');
     Route::post('/tarifas', [SuperAdminController::class, 'storeTarifa'])->name('tarifas.store');
     Route::put('/tarifas/{id}', [SuperAdminController::class, 'updateTarifa'])->name('tarifas.update');
+    Route::delete('/tarifas/eliminar/{id}', [SuperAdminController::class, 'deleteTarifa'])->name('tarifas.delete');
 
     // Bahías
     Route::get('/bahias', [SuperAdminController::class, 'bahias'])->name('bahias');
@@ -60,6 +62,7 @@ Route::middleware(['auth', 'rol_id:1', 'no-cache'])->prefix('superadmin')->name(
     // Configuración
     Route::get('/configuracion', [SuperAdminController::class, 'configuracion'])->name('configuracion');
     Route::post('/configuracion/tipo-vehiculo', [SuperAdminController::class, 'storeTipoVehiculo'])->name('configuracion.tipoVehiculo');
+    Route::patch('/configuracion/tipo-vehiculo/update/{id}', [SuperAdminController::class, 'updateTipoVehiculo'])->name('configuracion.tipoVehiculo.update');
 });
 
 

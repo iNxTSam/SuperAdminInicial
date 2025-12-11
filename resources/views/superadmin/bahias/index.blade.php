@@ -28,9 +28,9 @@
                             <td>{{ $bahia->numero }}</td>
                             <td>{{ $bahia->tipo_vehiculo_nombre }}</td>
                             <td>{{ $bahia->capacidad_maxima }}</td>
-                            <td>{{ $bahia->ubicacion }}</td>
+                            <td>{{ $bahia->ubicacion ?? '------' }}</td>
                             <td>
-                                @if($bahia->ocupada)
+                                @if($bahia->ocupada >= $bahia->capacidad_maxima)
                                     <span class="badge bg-danger">Sí</span>
                                 @else
                                     <span class="badge bg-success">No</span>
@@ -68,11 +68,11 @@
     <div class="modal fade" id="nuevaBahiaModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="{{ route('superadmin.bahias.store') }}" method="POST">
+                <form id="form" action="{{ route('superadmin.bahias.store') }}" method="POST">
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Nueva Bahía</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" onclick="limpiarFormulario()" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <input type="text" name="numero" class="form-control mb-2" placeholder="Número" required>
@@ -150,7 +150,10 @@
         </div>
     </div>
     <script>
-        
+        function limpiarFormulario() {
+            document.getElementById('form').reset();
+        }
+
         document.querySelectorAll('.editar-bahia').forEach(btn => {
             btn.addEventListener('click', function () {
                 let id = this.dataset.id;

@@ -47,11 +47,11 @@
   <div class="modal fade" id="nuevoClienteModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
-        <form action="{{ route('admin.clientes.store') }}" method="POST">
+        <form id="form" action="{{ route('admin.clientes.store') }}" method="POST">
           @csrf
           <div class="modal-header">
             <h5 class="modal-title">Nuevo cliente</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button type="button" onclick="limpiarFormulario()" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <div class="mb-2">
@@ -73,7 +73,7 @@
             <div class="mb-2">
               <label class="form-label">Rol</label>
               <select class="form-control" name="rol"  required>
-                <option>Seleccione un rol</option>
+                <option value="">Seleccione un rol</option>
                 @foreach ($roles as $rol)
                   <option value="{{ $rol->idRol }}">{{ $rol->nombre }}</option>
                 @endforeach
@@ -148,5 +148,7 @@
       })
     })
   </script>
+
+  <script src="{{ asset('js/limpiarFormulario.js') }}"></script>
 
 @endsection
